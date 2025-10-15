@@ -1,9 +1,13 @@
 resource "random_password" "password" {
-  // Create a new password with special chars and 16 characters
+  length  = 16
+  special = true
 }
 
 resource "google_sql_database_instance" "main" {
-  // Create a new sql database with variables.tf content
+  project          = var.project_name
+  name             = var.instance_name
+  database_version = var.database_version
+  region           = var.region
 
   // We allow internet access only for lab purpose
   settings {
@@ -19,13 +23,21 @@ resource "google_sql_database_instance" "main" {
 }
 
 resource "google_sql_user" "users" {
-  // Create the database user
+  project  = var.project_name
+  name     = var.username
+  instance = google_sql_database_instance.main.name
+  password = random_password.password.result
 }
 
 resource "google_secret_manager_secret" "db" {
-  // First create the secret with the name of the instance
+  project   = var.project_name
+  secret_id = "sql_user_password"
+  replication {
+    auto {}
+  }
 }
 
 resource "google_secret_manager_secret_version" "db" {
-  // then put the secret in the secret manager version
+  secret      = google_secret_manager_secret.db.id
+  secret_data = google_sql_user.users.password
 }
