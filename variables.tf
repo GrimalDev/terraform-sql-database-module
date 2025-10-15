@@ -1,7 +1,6 @@
 variable "instance_name" {
   type        = string
   description = "The name of the instance."
-  default     = "new_instance"
 }
 
 variable "username" {
